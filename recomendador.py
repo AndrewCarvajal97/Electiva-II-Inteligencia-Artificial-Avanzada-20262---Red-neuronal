@@ -450,3 +450,130 @@ recomendar({
     "gasto_prom": 120, "frecuencia": 12,
     "hora": 19, "es_corporativo": 1
 })
+
+# ── BLOQUE 9: VISUALIZACIÓN DE LA RED NEURONAL ───────────────
+
+def visualizar_red(): 
+    fig, ax = plt.subplots(figsize=(16, 8))
+    ax.set_xlim(0, 16)
+    ax.set_ylim(0, 8)
+    ax.axis("off")
+    fig.patch.set_facecolor("#FAFAFA")
+
+    # Capas: (x_centro, n_circulos_mostrar, label, color, sublabel)
+    capas = [
+        (1.5,  6, "ENTRADA",       "#3498DB", "6 variables"),
+        (4.5,  7, "CAPA 1",        "#27AE60", "64 neuronas\nBatchNorm · ReLU · Dropout 30%"),
+        (8.0,  9, "CAPA 2",        "#8E44AD", "128 neuronas\nBatchNorm · ReLU · Dropout 30%"),
+        (11.5, 7, "CAPA 3",        "#27AE60", "64 neuronas\nBatchNorm · ReLU · Dropout 20%"),
+        (14.5, 6, "SALIDA",        "#E74C3C", "15 platos\nSigmoid independiente"),
+    ]
+
+    radio = 0.22
+    posiciones_y = {}
+
+    for x, n, label, color, sublabel in capas:
+        espacio = 6.0 / (n + 1)
+        ys = [1.0 + espacio * (i + 1) for i in range(n)]
+        posiciones_y[x] = ys
+
+        # Dibujar círculos con sombra
+        for y in ys:
+            # Sombra
+            sombra = plt.Circle((x + 0.04, y - 0.04), radio,
+                                 color="#CCCCCC", zorder=2)
+            ax.add_patch(sombra)
+            # Neurona
+            circulo = plt.Circle((x, y), radio,
+                                  color=color, zorder=3,
+                                  ec="white", linewidth=1.5)
+            ax.add_patch(circulo)
+
+        # Título encima
+        ax.text(x, 7.4, label,
+                ha="center", va="center",
+                fontsize=10, fontweight="bold",
+                color=color)
+
+        # Sublabel debajo
+        ax.text(x, 0.45, sublabel,
+                ha="center", va="center",
+                fontsize=7.5, color="#555555",
+                style="italic", linespacing=1.5)
+
+    # ── Conexiones entre capas ────────────────────────────────
+    xs = [c[0] for c in capas]
+    for i in range(len(xs) - 1):
+        x1, x2 = xs[i], xs[i+1]
+        ys1 = posiciones_y[x1]
+        ys2 = posiciones_y[x2]
+        for y1 in ys1:
+            for y2 in ys2:
+                ax.plot([x1 + radio, x2 - radio], [y1, y2],
+                        color="#BBBBBB", linewidth=0.35,
+                        alpha=0.6, zorder=1)
+
+    # ── Flechas entre capas ───────────────────────────────────
+    etiquetas = ["", "", "", "Sigmoid"]
+    for i in range(len(xs) - 1):
+        x1, x2 = xs[i], xs[i+1]
+        xm = (x1 + x2) / 2
+        ax.annotate("",
+            xy=(x2 - radio - 0.1, 4.0),
+            xytext=(x1 + radio + 0.1, 4.0),
+            arrowprops=dict(arrowstyle="-|>",
+                            color="#888888", lw=1.5),
+            zorder=5)
+        if etiquetas[i]:
+            ax.text(xm, 4.3, etiquetas[i],
+                    ha="center", fontsize=8,
+                    color="#E74C3C", fontweight="bold")
+
+    # ── Etiquetas de variables de entrada ─────────────────────
+    vars_entrada = [
+        "Zona", "Comensales", "Gasto $",
+        "Frecuencia", "Hora", "Corporativo"
+    ]
+    ys_entrada = posiciones_y[1.5]
+    for y, var in zip(ys_entrada, vars_entrada):
+        ax.text(0.1, y, var,
+                ha="left", va="center",
+                fontsize=7, color="#3498DB")
+        ax.plot([0.85, 1.5 - radio], [y, y],
+                color="#3498DB", linewidth=0.6,
+                linestyle="--", alpha=0.5)
+
+    # ── Etiquetas de salida ────────────────────────────────────
+    platos_muestra = [
+        "Alitas 77%", "Ceviche 82%", "Filete 91%",
+        "Limonada 85%", "Tiramisú 68%", "..."
+    ]
+    ys_salida = posiciones_y[14.5]
+    for y, plato in zip(ys_salida, platos_muestra):
+        ax.text(15.1, y, plato,
+                ha="left", va="center",
+                fontsize=7, color="#E74C3C")
+        ax.plot([14.5 + radio, 15.05], [y, y],
+                color="#E74C3C", linewidth=0.6,
+                linestyle="--", alpha=0.5)
+
+    # ── Título ────────────────────────────────────────────────
+    ax.text(8, 7.75,
+            "Red Neuronal Multi-etiqueta — Recomendador de Platos AIA Technology",
+            ha="center", va="center",
+            fontsize=12, fontweight="bold", color="#2C3E50")
+
+    # ── Info pie ──────────────────────────────────────────────
+    ax.text(8, 0.05,
+            "18,511 parámetros  •  BCELoss  •  Adam lr=0.001  •  "
+            "100 épocas  •  Precisión 78.8%  •  Sin overfitting",
+            ha="center", va="center",
+            fontsize=8, color="#777777")
+
+    plt.tight_layout()
+    plt.savefig("outputs/red_neuronal.png", dpi=150,
+                bbox_inches="tight", facecolor="#FAFAFA")
+    plt.show()
+    print("✅ Red neuronal guardada en outputs/red_neuronal.png")
+
+visualizar_red()
