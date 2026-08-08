@@ -1,0 +1,95 @@
+# 🍽️ Red Neuronal — Recomendador de Platos AIA Technology
+
+Red neuronal multicapa (MLP) con PyTorch para recomendar platos del menú a clientes de restaurantes en Florida según su perfil de compra y patrón de gasto.
+
+**Autor:** Pablo Andrés Carvajal Ramírez  
+**Curso:** Electiva II — Inteligencia Artificial Avanzada 20262 — N4  
+**Institución:** Tecnológica del Oriente  
+
+---
+
+## ¿Qué hace este proyecto?
+
+Dado el perfil de un cliente — zona de Florida, número de comensales, gasto promedio, frecuencia, hora habitual y si es corporativo — el modelo genera una recomendación completa de orden por categoría con probabilidades independientes por plato.
+
+```
+Cliente: Miami · 4 personas · $85 · Noche
+        ↓
+Red Neuronal (6 → 64 → 128 → 64 → 15)
+        ↓
+🥗 Entradas    → Alitas BBQ 77%  · Ceviche 82%
+🍽️ Principales → Filete 91%      · Costillas 70%
+🥤 Bebidas     → Limonada 85%    · Cerveza 71%
+🍰 Postres     → Tiramisú 68%
+💰 Ticket estimado: $120 - $180
+```
+
+---
+
+## ¿Por qué Sigmoid y no Softmax?
+
+Softmax distribuye el 100% entre todos los platos como si el cliente solo pidiera uno. Sigmoid le da a cada plato su probabilidad independiente — el cliente puede tener 91% en el Filete **y** 85% en las Costillas al mismo tiempo porque los puede pedir juntos. Esto se llama **clasificación multi-etiqueta**.
+
+---
+
+## Arquitectura
+
+```
+Entrada      Capa 1        Capa 2         Capa 3        Salida
+6 variables → 64 neuronas → 128 neuronas → 64 neuronas → 15 platos
+              BatchNorm     BatchNorm      BatchNorm      Sigmoid
+              ReLU          ReLU           ReLU           independiente
+              Dropout 30%   Dropout 30%    Dropout 20%    por plato
+```
+
+- **Total de parámetros:** 18,511  
+- **Función de pérdida:** BCELoss (evalúa cada plato independientemente)  
+- **Optimizador:** Adam (lr=0.001)  
+- **Épocas:** 100  
+
+---
+
+## Resultados
+
+| Métrica | Valor |
+|---|---|
+| Precisión global | 78.8% |
+| Loss entrenamiento | 0.4260 |
+| Loss validación | 0.4266 |
+| Overfitting | 0.0006 (ninguno) |
+
+Los platos con mayor precisión son el Tiramisú (95.5%) y el Salmón (95%) porque solo los piden clientes con perfil muy específico. La Burger Premium tiene 64% porque la pide cualquier tipo de cliente sin patrón claro.
+
+---
+
+## Instalación y uso
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/AndrewCarvajal97/Electiva-II-Inteligencia-Artificial-Avanzada-20262---Red-neuronal.git
+cd Electiva-II-Inteligencia-Artificial-Avanzada-20262---Red-neuronal
+
+# 2. Crear entorno virtual
+python -m venv venv
+venv\Scripts\activate  # Windows
+
+# 3. Instalar dependencias
+venv\Scripts\python.exe -m pip install torch pandas numpy matplotlib seaborn scikit-learn
+
+# 4. Ejecutar
+python recomendador.py
+```
+
+---
+
+## Extensión a AIA Technology en producción
+
+1. **Fase 1** — Conectar a la BD PostgreSQL real de AIA con Prisma
+2. **Fase 2** — Exponer el modelo como endpoint en la API NestJS
+3. **Fase 3** — Mostrar recomendaciones en el dashboard del restaurante antes de que el mesero llegue a la mesa
+
+---
+
+## Video de presentación
+
+[Ver en YouTube](https://youtu.be/edaJkXlD5cw)
